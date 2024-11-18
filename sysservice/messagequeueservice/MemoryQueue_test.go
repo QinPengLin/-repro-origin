@@ -21,7 +21,7 @@ func Test_BiSearch(t *testing.T) {
 
 	startindex := uint64(0)
 	for {
-		retData, ret := memQueue.FindData(startindex+1, 10)
+		retData, ret := memQueue.FindData(startindex+1, 10, nil)
 		fmt.Println(retData, ret)
 		for _, d := range retData {
 			if d.Seq > startindex {
