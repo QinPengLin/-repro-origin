@@ -1,6 +1,7 @@
 package smath
 
 import (
+	"fmt"
 	"github.com/QinPengLin/repro-origin/log"
 	"github.com/QinPengLin/repro-origin/util/typ"
 )
@@ -32,10 +33,10 @@ func Abs[NumType typ.Signed | typ.Float](Num NumType) NumType {
 func AddSafe[NumType typ.Number](number1 NumType, number2 NumType) (NumType, bool) {
 	ret := number1 + number2
 	if number2 > 0 && ret < number1 {
-		log.Stack("Calculation overflow", log.Any("number1", number1), log.Any("number2", number2))
+		log.Stack("Calculation overflow", fmt.Sprintf("number1:%v number2:%v", number1, number2))
 		return ret, false
 	} else if number2 < 0 && ret > number1 {
-		log.Stack("Calculation overflow", log.Any("number1", number1), log.Any("number2", number2))
+		log.Stack("Calculation overflow", fmt.Sprintf("number1:%v number2:%v", number1, number2))
 		return ret, false
 	}
 
@@ -45,10 +46,10 @@ func AddSafe[NumType typ.Number](number1 NumType, number2 NumType) (NumType, boo
 func SubSafe[NumType typ.Number](number1 NumType, number2 NumType) (NumType, bool) {
 	ret := number1 - number2
 	if number2 > 0 && ret > number1 {
-		log.Stack("Calculation overflow", log.Any("number1", number1), log.Any("number2", number2))
+		log.Stack("Calculation overflow", fmt.Sprintf("number1:%v number2:%v", number1, number2))
 		return ret, false
 	} else if number2 < 0 && ret < number1 {
-		log.Stack("Calculation overflow", log.Any("number1", number1), log.Any("number2", number2))
+		log.Stack("Calculation overflow", fmt.Sprintf("number1:%v number2:%v", number1, number2))
 		return ret, false
 	}
 
@@ -65,7 +66,7 @@ func MulSafe[NumType typ.Number](number1 NumType, number2 NumType) (NumType, boo
 		return ret, true
 	}
 
-	log.Stack("Calculation overflow", log.Any("number1", number1), log.Any("number2", number2))
+	log.Stack("Calculation overflow", fmt.Sprintf("number1:%v number2:%v", number1, number2))
 	return ret, true
 }
 

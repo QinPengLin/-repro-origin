@@ -58,7 +58,7 @@ func (c *Concurrent) AsyncDoByQueue(queueId int64, fn func() bool, cb func(err e
 	}
 
 	if fn == nil && cb == nil {
-		log.Stack("fn and cb is nil")
+		log.Stack("", "fn and cb is nil")
 		return
 	}
 

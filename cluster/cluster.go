@@ -29,6 +29,14 @@ type DiscoveryService struct {
 	ServiceList  []string //只发现的服务列表
 }
 
+type LogConfig struct {
+	Encoder    string //日志编码方式 console|json 默认console
+	Level      string //日志级别 debug|info|warning|error|fatal 默认console
+	OutputType string //日志输出方式 console|file|all 默认all (console:只输出到控制台,file:只输出到文件,all:即输出到控制台也输出到文件)
+	Path       string //文件日志输出的目录 默认 ./log
+	FlieSize   int    //文件最大日志大小（Mb级别） 默认 100
+}
+
 type NodeInfo struct {
 	NodeId            string
 	Private           bool
@@ -38,6 +46,7 @@ type NodeInfo struct {
 	ServiceList       []string           //所有的有序服务列表
 	PublicServiceList []string           //对外公开的服务列表
 	DiscoveryService  []DiscoveryService //筛选发现的服务，如果不配置，不进行筛选
+	LogCfg            LogConfig          //节点日志相关配置
 	status            NodeStatus
 	Retire            bool
 

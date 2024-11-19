@@ -53,11 +53,6 @@ func init() {
 	console.RegisterCommandString("stop", "", "<-stop nodeid=nodeid> Stop originserver process.", stopNode)
 	console.RegisterCommandString("retire", "", "<-retire nodeid=nodeid> retire originserver process.", retireNode)
 	console.RegisterCommandString("config", "", "<-config path> Configuration file path.", setConfigPath)
-	console.RegisterCommandString("console", "", "<-console true|false> Turn on or off screen log output.", openConsole)
-	console.RegisterCommandString("loglevel", "debug", "<-loglevel debug|release|warning|error|fatal> Set loglevel.", setLevel)
-	console.RegisterCommandString("logpath", "", "<-logpath path> Set log file path.", setLogPath)
-	console.RegisterCommandInt("logsize", 0, "<-logsize size> Set log size(MB).", setLogSize)
-	console.RegisterCommandInt("logchannelcap", -1, "<-logchannelcap num> Set log channel cap.", setLogChannelCapNum)
 	console.RegisterCommandString("pprof", "", "<-pprof ip:port> Open performance analysis.", setPprof)
 }
 
@@ -215,13 +210,29 @@ func initNode(id string) {
 }
 
 func initLog() error {
-	if log.LogPath == "" {
-		setLogPath("./log")
+	localNodeInfo := cluster.GetCluster().GetLocalNodeInfo()
+	//设置日志文件的路径
+	if err := setLogPath(localNodeInfo.LogCfg.Path); err != nil {
+		return err
+	}
+	//设置日志级别
+	if err := setLevel(localNodeInfo.LogCfg.Level); err != nil {
+		return err
+	}
+	//设置日志输出格式
+	if err := setLogEncoder(localNodeInfo.LogCfg.Encoder); err != nil {
+		return err
+	}
+	//设置日志输出方式
+	if err := setLogOutputType(localNodeInfo.LogCfg.OutputType); err != nil {
+		return err
+	}
+	//设置文件最大日志大小
+	if err := setLogSize(localNodeInfo.LogCfg.FlieSize); err != nil {
+		return err
 	}
 
-	localNodeInfo := cluster.GetCluster().GetLocalNodeInfo()
-	filePre := fmt.Sprintf("%s_", localNodeInfo.NodeId)
-	logger, err := log.NewTextLogger(log.LogLevel, log.LogPath, filePre, true, log.LogChannelCap)
+	logger, err := log.NewLogger(localNodeInfo.NodeId)
 	if err != nil {
 		fmt.Printf("cannot create log file!\n")
 		return err
@@ -336,12 +347,12 @@ func startNode(args interface{}) error {
 	}
 
 	//2.记录进程id号
-	log.Info("Start running server.")
 	writeProcessPid(strNodeId)
 	timer.StartTimer(10*time.Millisecond, 1000000)
 
 	//3.初始化node
 	initNode(strNodeId)
+	log.Info("Start running server.")
 
 	//4.运行service
 	service.Start()
@@ -424,30 +435,40 @@ func OpenProfilerReport(interval time.Duration) {
 	profilerInterval = interval
 }
 
-func openConsole(args interface{}) error {
-	if args == "" {
+func setLogOutputType(e string) error {
+	e = strings.TrimSpace(e)
+	if e == "" {
 		return nil
 	}
-	strOpen := strings.ToLower(strings.TrimSpace(args.(string)))
-	if strOpen == "false" {
-		log.OpenConsole = false
-	} else if strOpen == "true" {
-		log.OpenConsole = true
-	} else {
-		return errors.New("parameter console error")
+	switch e {
+	case "all", "console", "file":
+		log.OutputType = e
+	default:
+		return errors.New("unknown log output type: " + e)
 	}
 	return nil
 }
 
-func setLevel(args interface{}) error {
-	if args == "" {
+func setLogEncoder(e string) error {
+	e = strings.TrimSpace(e)
+	if e == "" {
 		return nil
 	}
+	switch e {
+	case "json", "console":
+		log.Encoder = e
+	default:
+		return errors.New("unknown log encoder: " + e)
+	}
+	return nil
+}
 
-	strlogLevel := strings.TrimSpace(args.(string))
+func setLevel(strlogLevel string) error {
+	strlogLevel = strings.TrimSpace(strlogLevel)
+	if strlogLevel == "" {
+		return nil
+	}
 	switch strlogLevel {
-	case "trace":
-		log.LogLevel = log.LevelTrace
 	case "debug":
 		log.LogLevel = log.LevelDebug
 	case "info":
@@ -466,12 +487,13 @@ func setLevel(args interface{}) error {
 	return nil
 }
 
-func setLogPath(args interface{}) error {
-	if args == "" {
+func setLogPath(e string) error {
+	e = strings.TrimSpace(e)
+	if e == "" {
 		return nil
 	}
 
-	log.LogPath = strings.TrimSpace(args.(string))
+	log.LogPath = e
 	dir, err := os.Stat(log.LogPath) //这个文件夹不存在
 	if err == nil && dir.IsDir() == false {
 		return errors.New("Not found dir " + log.LogPath)
@@ -487,35 +509,10 @@ func setLogPath(args interface{}) error {
 	return nil
 }
 
-func setLogSize(args interface{}) error {
-	if args == "" {
+func setLogSize(e int) error {
+	if e <= 0 {
 		return nil
 	}
-
-	logSize, ok := args.(int)
-	if ok == false {
-		return errors.New("param logsize is error")
-	}
-
-	log.LogSize = int64(logSize) * 1024 * 1024
-
-	return nil
-}
-
-func setLogChannelCapNum(args interface{}) error {
-	if args == "" {
-		return nil
-	}
-
-	logChannelCap, ok := args.(int)
-	if ok == false {
-		return errors.New("param logsize is error")
-	}
-
-	if logChannelCap == -1 {
-		return nil
-	}
-
-	log.LogChannelCap = logChannelCap
+	log.LogSize = e
 	return nil
 }

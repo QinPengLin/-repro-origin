@@ -75,7 +75,7 @@ func (cs *CallSet) AddPending(call *Call) {
 
 	if call.Seq == 0 {
 		cs.pendingLock.Unlock()
-		log.Stack("call is error.")
+		log.Stack("", "call is error.")
 		return
 	}
 

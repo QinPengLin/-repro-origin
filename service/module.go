@@ -292,7 +292,7 @@ func (m *Module) CancelTimerId(timerId *uint64) bool {
 
 	t, ok := m.mapActiveIdTimer[*timerId]
 	if ok == false {
-		log.Stack("cannot find timer id ", log.Uint64("timerId", *timerId))
+		log.Stack("cannot find timer id ", fmt.Sprintf("timerId:%d", *timerId))
 		return false
 	}
 
