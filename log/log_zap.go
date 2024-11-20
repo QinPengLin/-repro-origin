@@ -16,8 +16,8 @@ var (
 	LogLevel   = LevelDebug
 	Encoder    = "console"
 
-	hookDefer func(entry zapcore.Entry) error
-	zapLogger ILogger
+	hookDefer    func(entry zapcore.Entry) error
+	zapLogger, _ = NewLogger("")
 )
 
 // SetLogger It's non-thread-safe
